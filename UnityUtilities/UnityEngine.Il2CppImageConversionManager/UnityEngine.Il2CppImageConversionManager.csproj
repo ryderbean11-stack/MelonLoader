@@ -2,7 +2,8 @@
     <PropertyGroup>
         <TargetFramework>$(DotNetTarget)</TargetFramework>
         <RootNamespace>UnityEngine</RootNamespace>
-        <OutputPath>$(MLOutDir)/MelonLoader/$(TargetFramework)</OutputPath>
+        <OutputPath>$(MLOutDir)/MelonLoader</OutputPath>
+        <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
     </PropertyGroup>
 
     <ItemGroup>

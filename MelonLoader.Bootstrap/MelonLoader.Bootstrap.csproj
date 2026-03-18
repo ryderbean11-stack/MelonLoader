@@ -8,7 +8,6 @@
         <SelfContained>true</SelfContained>
         <PublishDir>$(MLOutDir)</PublishDir>
         <DefineConstants>$(DefineConstants);BOOTSTRAP</DefineConstants>
-
         <AcceptVSBuildToolsLicense>true</AcceptVSBuildToolsLicense>
         <XwinArches Condition="'$(XWinArches)' == ''">x86,x86_64</XwinArches>
     </PropertyGroup>
@@ -17,13 +16,13 @@
         <ExportsFile>linuxexports.def</ExportsFile>
         <LinkStandardCPlusPlusLibrary>true</LinkStandardCPlusPlusLibrary>
     </PropertyGroup>
-	
+
     <PropertyGroup Condition="'$(RuntimeIdentifier.StartsWith(`osx-`))' == 'true'">
         <ExportsFile>osxexports.def</ExportsFile>
         <OSXEntryPath>Deps/$(RuntimeIdentifier)/osxentry.o</OSXEntryPath>
         <LinkStandardCPlusPlusLibrary>true</LinkStandardCPlusPlusLibrary>
     </PropertyGroup>
-    
+
     <Target Condition="'$(RuntimeIdentifier.StartsWith(`osx-`))' == 'true'" Name="BuildOSXEntry" BeforeTargets="Build">
         <Exec Command="g++ -c -O2 -fPIC OSXEntry/osxentry.cpp -o $(OSXEntryPath)" />
     </Target>
@@ -70,7 +69,7 @@
     <ItemGroup Condition="'$(RuntimeIdentifier.StartsWith(`osx-`))' == 'true'">
         <NativeLibrary Include="$(OSXEntryPath)" />
     </ItemGroup>
-    
+
     <ItemGroup>
         <NativeLibrary Include="$(AppHostPath)" />
         <NativeLibrary Include="Deps/$(RuntimeIdentifier)/$(LibPrefix)dobby$(LibExt)" />
@@ -85,9 +84,13 @@
         <WriteLinesToFile File="$(ExportsFile)" Lines="$([System.IO.File]::ReadAllText($(ExportsFile)).Replace('V1.0',''))" Overwrite="true" />
     </Target>
 
-    <Target Name="PublishAsBuildAfterTarget" AfterTargets="Build" DependsOnTargets="Publish" />
+    <Target Name="PublishAfterBuild" AfterTargets="Build" Condition="'$(SkipPublishAfterBuild)' != 'true'">
+        <MSBuild Projects="$(MSBuildProjectFile)"
+             Targets="Publish"
+             Properties="Configuration=$(Configuration);PublishDir=$(PublishDir);SkipPublishAfterBuild=true" />
+    </Target>
 
     <Target Condition="'$(RuntimeIdentifier.StartsWith(`win-`))' == 'true'" Name="RenameBinary" AfterTargets="Build">
-        <Move SourceFiles="$(MLOutDir)/$(TargetName).dll" DestinationFiles="$(MLOutDir)/version.dll" />
+        <Move SourceFiles="$(PublishDir)$(TargetName).dll" DestinationFiles="$(MLOutDir)/version.dll" Condition="Exists('$(PublishDir)$(TargetName).dll')" />
     </Target>
 </Project>

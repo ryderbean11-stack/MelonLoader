@@ -111,7 +111,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <MLOutDir>$(SolutionDir)/Output/$(Configuration)/$(RuntimeIdentifier)</MLOutDir>
+        <MLOutDir>$(SolutionDir)Output/$(Configuration)/$(RuntimeIdentifier)</MLOutDir>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == '$(MonoTarget)' Or '$(TargetFramework)' == '$(MonoBleedingEdgeTarget)'">

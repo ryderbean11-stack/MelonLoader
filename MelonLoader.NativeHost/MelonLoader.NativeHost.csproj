@@ -4,8 +4,7 @@
         <TargetFramework>$(DotNetTarget)</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <OutputPath>$(MLOutDir)/MelonLoader</OutputPath>
-        <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+        <OutputPath>$(MLOutDir)/MelonLoader/$(TargetFramework)</OutputPath>
         <DebugType>embedded</DebugType>
     </PropertyGroup>
 

@@ -3,8 +3,7 @@
         <TargetFrameworks>$(MonoTarget);$(DotNetTarget)</TargetFrameworks>
         <RootNamespace>MelonLoader.MelonStartScreen</RootNamespace>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-        <OutputPath>$(MLOutDir)/MelonLoader</OutputPath>
-        <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+        <OutputPath>$(MLOutDir)/MelonLoader/$(TargetFramework)</OutputPath>
         <DebugType>portable</DebugType>
     </PropertyGroup>
     <ItemGroup>

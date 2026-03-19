@@ -1,4 +1,5 @@
 #if LINUX || OSX
+using MelonLoader.Bootstrap.Utils;
 using System.Runtime.InteropServices;
 using System.Text;
 

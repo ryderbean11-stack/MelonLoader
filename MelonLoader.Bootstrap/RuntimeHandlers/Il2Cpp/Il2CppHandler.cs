@@ -111,9 +111,10 @@ internal static class Il2CppHandler
 
     internal static nint InvokeDetour(nint method, nint obj, nint args, nint exc)
     {
-        var result = il2cpp.RuntimeInvoke(method, obj, args, exc);
         if (invokeStarted)
-            return result;
+            return il2cpp.RuntimeInvoke(method, obj, args, exc);
+
+        var result = il2cpp.RuntimeInvoke(method, obj, args, exc);
 
         var name = il2cpp.GetMethodName(method);
         if (name == null || !name.Contains("Internal_ActiveSceneChanged"))
@@ -130,6 +131,16 @@ internal static class Il2CppHandler
     private static void Start()
     {
         startFunc?.Invoke();
+    }
+
+    private static unsafe void NativeHookAttachImpl(nint* target, nint detour)
+    {
+        *target = Dobby.HookAttach(*target, detour);
+    }
+
+    private static unsafe void NativeHookDetachImpl(nint* target, nint detour)
+    {
+        Dobby.HookDetach(*target);
     }
 
     // Requires the bootstrap handle to be passed first

@@ -145,14 +145,12 @@ namespace MelonLoader
             Fixes.Il2CppInterop.Il2CppInteropExceptionLog.Install();
 
 #if OSX
-            Fixes.Il2CppInterop.Il2CppInteropMacFix.Install();
             Fixes.Dotnet.NativeLibraryFix.Install();
 #endif
 
             Fixes.Il2CppInterop.Il2CppInteropFixes.Install();
+            Fixes.Il2CppInterop.Il2CppInteropInjectorHelpersSetupFix.Install();
             Fixes.Il2CppInterop.Il2CppInteropGetFieldDefaultValueFix.Install();
-            Fixes.Il2CppInterop.Il2CppInteropGenericMethodGetMethodFix.Install();
-
             Fixes.Il2CppInterop.Il2CppICallInjector.Install();
 
 #endif
@@ -211,8 +209,8 @@ namespace MelonLoader
             if (!SupportModule.Setup())
                 return false;
 
-            //MelonDebug.Msg("Invoking AddUnityDebugLog");
-            //AddUnityDebugLog();
+            MelonDebug.Msg("Invoking AddUnityDebugLog");
+            AddUnityDebugLog();
 
 #if NET6_0_OR_GREATER
             RegisterTypeInIl2Cpp.SetReady();

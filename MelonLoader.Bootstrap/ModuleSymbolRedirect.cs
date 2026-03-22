@@ -30,7 +30,6 @@ namespace MelonLoader.Bootstrap
                 ("dlsym", detourPtr)
             ]);
 #endif
-
 #if WINDOWS
             PltHook.InstallHooks
             ([
@@ -41,58 +40,59 @@ namespace MelonLoader.Bootstrap
             MelonDebug.Log("Symbol Redirect Attached!");
         }
 
-        internal static nint GetSymbol(nint handle, string? symbol)
+        internal static nint GetSymbol(nint handle, string symbolName)
+            => GetSymbol(handle, Marshal.StringToHGlobalAnsi(symbolName));
+        private static nint GetSymbol(nint handle, nint symbolName)
         {
             if ((handle == nint.Zero)
-                || string.IsNullOrEmpty(symbol))
+                || (symbolName == nint.Zero))
                 return nint.Zero;
 
-            // Herp: Using Prebuilt Interop classes for this caused weird crashing issues when attempting to marshal string to span
-            // This works around the issue by manually importing the appropriate original export into a delegate and then calling original using that instead
 #if WINDOWS
-            return WindowsNative.GetProcAddress(handle, symbol);
+            return GetProcAddress(handle, symbolName);
 #elif LINUX || OSX
-            return LibcNative.Dlsym(handle, symbol);
+            return dlsym(handle, symbolName);
 #else
             return nint.Zero;
 #endif
         }
-        internal static nint GetSymbol(nint handle, nint symbol)
-        {
-            if ((handle == nint.Zero) 
-                || (symbol == nint.Zero))
-                return nint.Zero;
-
-            return GetSymbol(handle, Marshal.PtrToStringAnsi(symbol));
-        }
 
         private static nint SymbolDetour(nint handle, nint symbol)
         {
+            nint originalSymbolAddress = GetSymbol(handle, symbol);
+
             string? symbolName = Marshal.PtrToStringAnsi(symbol);
             if (string.IsNullOrEmpty(symbolName)
                 || string.IsNullOrWhiteSpace(symbolName))
-                return nint.Zero;
+                return originalSymbolAddress;
 
-            nint originalSymbolAddress = GetSymbol(handle, symbolName);
-            if (originalSymbolAddress == nint.Zero)
-                return nint.Zero;
-
-            MelonDebug.Log($"Looking for Symbol {symbolName}");
+            //MelonDebug.Log($"Looking for Symbol {symbolName}");
             if (!MonoHandler.SymbolRedirects.TryGetValue(symbolName, out var redirect)
                 && !Il2CppHandler.SymbolRedirects.TryGetValue(symbolName, out redirect))
                 return originalSymbolAddress;
 
             if (!_runtimeInitialised)
             {
-                MelonDebug.Log("Init");
+                _runtimeInitialised = true;
+                MelonDebug.Log("Initializing Runtime");
                 redirect.InitMethod(handle);
                 if (!LoaderConfig.Current.Loader.CapturePlayerLogs)
                     ConsoleHandler.ResetHandles();
             }
-            _runtimeInitialised = true;
 
             MelonDebug.Log($"Redirecting {symbolName}");
             return redirect.detourPtr;
         }
+
+#if WINDOWS
+        [DllImport("kernel32")]
+        private static extern nint GetProcAddress(nint handle, nint symbol);
+#elif LINUX
+        [DllImport("libdl.so.2")]
+        private static extern IntPtr dlsym(nint handle, nint symbol);
+#elif OSX
+        [DllImport("libSystem.B.dylib")]
+        private static extern IntPtr dlsym(nint handle, nint symbol);
+#endif
     }
 }

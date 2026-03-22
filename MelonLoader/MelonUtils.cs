@@ -396,17 +396,21 @@ namespace MelonLoader
         }
 
         public static void TryPatchAll(this HarmonyLib.Harmony harmony, Assembly assembly)
+            => TryPatchAll(harmony, assembly, false);
+        public static void TryPatchAll(this HarmonyLib.Harmony harmony, Assembly assembly, bool allowUnannotatedType)
         {
             var allTypes = assembly.GetValidTypes();
             foreach (var type in allTypes)
-                harmony.TryPatchAll(type);
+                harmony.TryPatchAll(type, allowUnannotatedType);
         }
 
         public static void TryPatchAll(this HarmonyLib.Harmony harmony, Type type)
+            => TryPatchAll(harmony, type, false);
+        public static void TryPatchAll(this HarmonyLib.Harmony harmony, Type type, bool allowUnannotatedType)
         {
             try
             {
-                var proc = harmony.CreateClassProcessor(type, allowUnannotatedType: true);
+                var proc = harmony.CreateClassProcessor(type, allowUnannotatedType);
                 proc.Patch();
             }
             catch

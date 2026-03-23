@@ -207,6 +207,8 @@ namespace MelonLoader.Support
             private Delegate _target;
             private IntPtr _targetPtr;
 
+            private GCHandle _pin;
+
             /// <summary>
             /// Original method
             /// </summary>
@@ -219,6 +221,7 @@ namespace MelonLoader.Support
             {
                 _detourFrom = detourFrom;
                 _target = target;
+                _pin = GCHandle.Alloc(_target);
 
                 // We have to apply immediately because we're gonna be asked for a trampoline right away
                 Apply();
@@ -229,14 +232,10 @@ namespace MelonLoader.Support
                 if (_targetPtr != IntPtr.Zero)
                     return;
 
-                _targetPtr = Marshal.GetFunctionPointerForDelegate(_target);
-                
-                var addr = _detourFrom;
-                nint addrPtr = (nint)(&addr);
-                BootstrapInterop.NativeHookAttachDirect(addrPtr, _targetPtr);
-                NativeStackWalk.RegisterHookAddr((ulong)addrPtr, $"Il2CppInterop detour of 0x{addrPtr:X} -> 0x{_targetPtr:X}");
+                _targetPtr = CoreClrDelegateFixer.GetFixedPointerForDelegate(_target);
 
-                _originalPtr = addr;
+                _originalPtr = BootstrapInterop.NativeHookAttachDirect(_detourFrom, _targetPtr);
+                NativeStackWalk.RegisterHookAddr((ulong)_detourFrom, $"Il2CppInterop detour of 0x{_detourFrom:X} -> 0x{_targetPtr:X}");
             }
 
             public unsafe void Dispose()
@@ -244,14 +243,14 @@ namespace MelonLoader.Support
                 if (_targetPtr == IntPtr.Zero)
                     return;
 
-                var addr = _detourFrom;
-                nint addrPtr = (nint)(&addr);
-
-                BootstrapInterop.NativeHookDetach(addrPtr, _targetPtr);
-                NativeStackWalk.UnregisterHookAddr((ulong)addrPtr);
+                BootstrapInterop.NativeHookDetach(_detourFrom, _targetPtr);
+                NativeStackWalk.UnregisterHookAddr((ulong)_detourFrom);
 
                 _targetPtr = IntPtr.Zero;
                 _originalPtr = IntPtr.Zero;
+
+                if (_pin.IsAllocated)
+                    _pin.Free();
             }
 
             public T GenerateTrampoline<T>()

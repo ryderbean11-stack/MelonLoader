@@ -51,13 +51,17 @@ public class LoaderConfig
             }
             catch { }
         }
-
-        var doc2 = TomletMain.TomlStringFrom(Current);
-        try
+        else
         {
-            File.WriteAllText(path, doc2);
+            var doc2 = TomletMain.TomlStringFrom(Current);
+            try
+            {
+                File.WriteAllText(path, doc2);
+            }
+            catch
+            {
+            }
         }
-        catch { }
 
         CoreConfig.Initialize(baseDir);
         ConsoleConfig.Initialize();

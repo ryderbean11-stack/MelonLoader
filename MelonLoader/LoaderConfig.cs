@@ -53,9 +53,9 @@ public class LoaderConfig
         }
         else
         {
-            var doc2 = TomletMain.TomlStringFrom(Current);
             try
             {
+                var doc2 = TomletMain.TomlStringFrom(Current);
                 File.WriteAllText(path, doc2);
             }
             catch

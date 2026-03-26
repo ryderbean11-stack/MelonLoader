@@ -47,21 +47,15 @@ public class LoaderConfig
             try
             {
                 var doc = TomlParser.ParseFile(path);
-                Current = TomletMain.To<LoaderConfig>(doc) ?? new();
-            }
-            catch { }
-        }
-        else
-        {
-            try
-            {
-                var doc2 = TomletMain.TomlStringFrom(Current);
-                File.WriteAllText(path, doc2);
+                Current = TomletMain.To<LoaderConfig>(doc) ?? new LoaderConfig();
+                SaveFile(path);
             }
             catch
             {
             }
         }
+        else
+            TrySaveFile(path);
 
         CoreConfig.Initialize(baseDir);
         ConsoleConfig.Initialize();
@@ -69,6 +63,24 @@ public class LoaderConfig
         MonoDebugServerConfig.Initialize();
         UnityEngineConfig.Initialize();
     }
+
+    private static void TrySaveFile(string path)
+    {
+        try
+        {
+            SaveFile(path);
+        }
+        catch
+        {
+        }
+    }
+    
+    private static void SaveFile(string path)
+    {
+        var doc2 = TomletMain.TomlStringFrom(Current);
+        File.WriteAllText(path, doc2);
+    }
+    
 #endif
 
     public static LoaderConfig Current { get; internal set; } = new();

@@ -50,30 +50,31 @@ internal static unsafe class BootstrapInterop
     }
 #endif
 
-    public static void NativeHookAttach(nint target, nint detour)
+    public static nint NativeHookAttach(nint target, nint detour)
     {
-#if NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER && !LINUX
         //SanityCheckDetour is able to wrap and fix the bad method in a delegate where possible, so we pass the detour by ref.
-        if (!MelonUtils.IsUnderWineOrSteamProton() && !CoreClrDelegateFixer.SanityCheckDetour(ref detour))
-            return;
+        if (!CoreClrDelegateFixer.SanityCheckDetour(ref detour))
+            return nint.Zero;
 #endif
 
-        NativeHookAttachDirect(target, detour);
+        nint result = NativeHookAttachDirect(target, detour);
 
 #if NET6_0_OR_GREATER
         NativeStackWalk.RegisterHookAddr((ulong)target, $"Mod-requested detour of 0x{target:X} -> 0x{detour:X}");
 #endif
+        return result;
     }
 
-    internal static unsafe void NativeHookAttachDirect(nint target, nint detour)
+    internal static unsafe nint NativeHookAttachDirect(nint target, nint detour)
     {
-        Library.NativeHookAttach((nint*)target, detour);
+        return Library.NativeHookAttach(target, detour);
     }
 
     public static unsafe void NativeHookDetach(nint target, nint detour)
     {
-        Library.NativeHookDetach((nint*)target, detour);
-
+        if (target == IntPtr.Zero) return;
+        Library.NativeHookDetach(target, detour);
 #if NET6_0_OR_GREATER
         NativeStackWalk.UnregisterHookAddr((ulong)target);
 #endif

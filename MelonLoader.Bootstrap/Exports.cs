@@ -194,9 +194,9 @@ internal static class Exports
 #endif
 
     [UnmanagedCallersOnly(EntryPoint = "NativeHookAttach")]
-    public static unsafe void NativeHookAttach(nint* target, nint detour)
+    public static unsafe nint NativeHookAttach(nint target, nint detour)
     {
-        *target = Dobby.HookAttach(*target, detour);
+        return Dobby.HookAttach(target, detour);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "NativeHookDetach")]

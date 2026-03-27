@@ -55,7 +55,7 @@ internal static unsafe class BootstrapInterop
 #if NET6_0_OR_GREATER && !LINUX
         //SanityCheckDetour is able to wrap and fix the bad method in a delegate where possible, so we pass the detour by ref.
         if (!CoreClrDelegateFixer.SanityCheckDetour(ref detour))
-            return nint.Zero;
+            return IntPtr.Zero;
 #endif
 
         nint result = NativeHookAttachDirect(target, detour);

@@ -60,7 +60,7 @@
 	<!--
 		Mono Overrides
 	-->
-    <PropertyGroup Condition="'$(TargetFramework)' == '$(MonoTarget)' Or '$(TargetFramework)' == '$(MonoBleedingEdgeTarget)'">
+    <PropertyGroup Condition="'$(TargetFramework)' == '$(MonoTarget)'">
         <MonoCecilVersion>0.10.4</MonoCecilVersion>
     </PropertyGroup>
 

@@ -14,7 +14,7 @@ namespace MelonLoader.CoreClrUtils
     {
         private static readonly AssemblyBuilder assembly = AssemblyBuilder.DefineDynamicAssembly(new("MelonLoaderFixedHooks"), AssemblyBuilderAccess.Run);
         private static readonly ModuleBuilder module = assembly.DefineDynamicModule("MelonLoaderFixedHooks");
-        private static readonly List<Delegate> PinnedFixedDelegates = new List<Delegate>();
+        private static readonly Dictionary<MethodInfo, Delegate> PinnedFixedDelegates = new();
 
         internal static bool SanityCheckDetour(ref IntPtr detour)
         {
@@ -43,12 +43,19 @@ namespace MelonLoader.CoreClrUtils
                         //Try and patch the delegate if we can
                         if(melon != null && managedMethod is MethodInfo methodInfo)
                         {
+                            if (PinnedFixedDelegates.TryGetValue(methodInfo, out var pinnedDel))
+                            {
+                                detour = Marshal.GetFunctionPointerForDelegate(pinnedDel);
+                                return true;
+                            }
+
                             try
                             {
                                 var wrapperType = GetHookWrapperDelegateType(melon, methodInfo);
 
                                 var del = Delegate.CreateDelegate(wrapperType, methodInfo);
-                                PinnedFixedDelegates.Add(del);
+                                
+                                PinnedFixedDelegates[methodInfo] = del;
 
                                 detour = Marshal.GetFunctionPointerForDelegate(del);
 
@@ -119,6 +126,9 @@ namespace MelonLoader.CoreClrUtils
             return type.CreateType();
         }
 
+        internal static void Unpin(MethodInfo method)
+            => PinnedFixedDelegates.Remove(method);
+
         internal static IntPtr GetFixedPointerForDelegate(Delegate del)
         {
             if (del == null) return IntPtr.Zero;
@@ -127,12 +137,17 @@ namespace MelonLoader.CoreClrUtils
             {
                 return Marshal.GetFunctionPointerForDelegate(del);
             }
+            
+            if (PinnedFixedDelegates.TryGetValue(del.Method, out var pinnedDel))
+                return Marshal.GetFunctionPointerForDelegate(pinnedDel);
 
             try
             {
                 var wrapperType = GetHookWrapperDelegateType(null, del.Method);
                 var wrappedDel = Delegate.CreateDelegate(wrapperType, del.Target, del.Method);
-                PinnedFixedDelegates.Add(wrappedDel);
+                
+                PinnedFixedDelegates[del.Method] = wrappedDel;
+                
                 return Marshal.GetFunctionPointerForDelegate(wrappedDel);
             }
             catch (Exception ex)

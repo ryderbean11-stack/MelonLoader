@@ -237,6 +237,7 @@ namespace MelonLoader.Support
                 
                 var addr = _detourFrom;
                 nint addrPtr = (nint)(&addr);
+                
                 BootstrapInterop.NativeHookAttachDirect(addrPtr, _targetPtr);
                 NativeStackWalk.RegisterHookAddr((ulong)addrPtr, $"Il2CppInterop detour of 0x{addrPtr:X} -> 0x{_targetPtr:X}");
 
@@ -251,8 +252,9 @@ namespace MelonLoader.Support
                 var addr = _detourFrom;
                 nint addrPtr = (nint)(&addr);
 
-                BootstrapInterop.NativeHookDetach(addrPtr, _targetPtr);
+                BootstrapInterop.NativeHookDetachDirect(addrPtr, _targetPtr);
                 NativeStackWalk.UnregisterHookAddr((ulong)addrPtr);
+                CoreClrDelegateFixer.Unpin(_target.Method);
 
                 _targetPtr = IntPtr.Zero;
                 _originalPtr = IntPtr.Zero;

@@ -74,11 +74,16 @@ internal static unsafe class BootstrapInterop
 
     public static unsafe void NativeHookDetach(nint target, nint detour)
     {
-        Library.NativeHookDetach((nint*)target, detour);
+        NativeHookDetachDirect(target, detour);
 
 #if NET6_0_OR_GREATER
         NativeStackWalk.UnregisterHookAddr((ulong)target);
 #endif
+    }
+    
+    internal static unsafe void NativeHookDetachDirect(nint target, nint detour)
+    {
+        Library.NativeHookDetach((nint*)target, detour);
     }
 
     // Herp: This unfortunately needs to return a string with the error message

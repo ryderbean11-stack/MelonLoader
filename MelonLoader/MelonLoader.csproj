@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks>$(MonoTarget);$(DotNetTarget)</TargetFrameworks>
+        <TargetFrameworks>$(MonoTarget);$(MonoBleedingEdgeTarget);$(DotNetTarget)</TargetFrameworks>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
         <OutputPath>$(MLOutDir)/MelonLoader</OutputPath>
         <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
@@ -13,7 +13,7 @@
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
     </PropertyGroup>
-    <ItemDefinitionGroup>
+    <ItemDefinitionGroup Condition="$(IsNuGetPack) != 'true'">
         <PackageReference>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>

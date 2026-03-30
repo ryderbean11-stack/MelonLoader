@@ -46,6 +46,7 @@ namespace MelonLoader.CoreClrUtils
                             if (PinnedFixedDelegates.TryGetValue(methodInfo, out var pinnedDel))
                             {
                                 detour = Marshal.GetFunctionPointerForDelegate(pinnedDel);
+                                logger.Warning($"Encountered a dodgy native hook to a managed method in melon {modName}: {methodInfo.DeclaringType.FullName}::{methodInfo.Name}. It has been wrapped in a proper unmanaged delegate, but please fix your mod! You also won't be able to detach this hook!");
                                 return true;
                             }
 

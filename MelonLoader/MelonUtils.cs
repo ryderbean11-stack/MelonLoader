@@ -397,25 +397,39 @@ namespace MelonLoader
 
         public static void TryPatchAll(this HarmonyLib.Harmony harmony, Assembly assembly)
             => TryPatchAll(harmony, assembly, false);
-        public static void TryPatchAll(this HarmonyLib.Harmony harmony, Assembly assembly, bool allowUnannotatedType)
+        
+        public static List<MethodInfo> TryPatchAll(this HarmonyLib.Harmony harmony,
+            Assembly assembly, 
+            bool allowUnannotatedType)
         {
+            List<MethodInfo> patches = new();
             var allTypes = assembly.GetValidTypes();
             foreach (var type in allTypes)
-                harmony.TryPatchAll(type, allowUnannotatedType);
+            {
+                List<MethodInfo> newPatches = harmony.TryPatchAll(type, allowUnannotatedType);
+                if ((newPatches != null) && (newPatches.Count > 0))
+                    patches.AddRange(newPatches);
+            }
+            return patches;
         }
 
         public static void TryPatchAll(this HarmonyLib.Harmony harmony, Type type)
             => TryPatchAll(harmony, type, false);
-        public static void TryPatchAll(this HarmonyLib.Harmony harmony, Type type, bool allowUnannotatedType)
+        
+        public static List<MethodInfo> TryPatchAll(this HarmonyLib.Harmony harmony, 
+            Type type, 
+            bool allowUnannotatedType)
         {
             try
             {
                 var proc = harmony.CreateClassProcessor(type, allowUnannotatedType);
-                proc.Patch();
+                return proc.Patch();
             }
             catch
             {
             }
+
+            return null;
         }
 
         public static HarmonyMethod ToNewHarmonyMethod(this MethodInfo methodInfo)

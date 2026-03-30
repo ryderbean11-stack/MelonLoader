@@ -53,8 +53,9 @@ internal static unsafe class BootstrapInterop
     public static nint NativeHookAttach(nint target, nint detour)
     {
 #if NET6_0_OR_GREATER && !LINUX
-        //SanityCheckDetour is able to wrap and fix the bad method in a delegate where possible, so we pass the detour by ref.
-        if (!CoreClrDelegateFixer.SanityCheckDetour(ref detour))
+        // SanityCheckDetour is able to wrap and fix the bad method in a delegate where possible, so we pass the detour by ref.
+        // Herp: Wine and Proton are missing the PssCaptureSnapshot export from kernel32.dll so we skip CoreClrDelegateFixer under that runtime
+        if (!MelonUtils.IsUnderWineOrSteamProton() && !CoreClrDelegateFixer.SanityCheckDetour(ref detour))
             return IntPtr.Zero;
 #endif
 

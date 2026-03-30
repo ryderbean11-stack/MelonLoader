@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace MelonLoader.Bootstrap;
 
 [UnmanagedFunctionPointer(CallingConvention.Winapi)]
-internal unsafe delegate nint NativeHookFn(nint target, nint detour);
+internal unsafe delegate void NativeHookFn(nint* target, nint detour);
 
 [UnmanagedFunctionPointer(CallingConvention.Winapi, CharSet = CharSet.Unicode)]
 internal unsafe delegate void LogMsgFn(ColorARGB* msgColor, string msg, int msgLength, ColorARGB* sectionColor, string section, int sectionLength, string strippedMSg, int strippedMsgLength);

@@ -206,7 +206,7 @@ namespace MelonLoader.Support
             
             private Delegate _target;
             private IntPtr _targetPtr;
-
+            
             private GCHandle _pin;
 
             /// <summary>
@@ -232,10 +232,15 @@ namespace MelonLoader.Support
                 if (_targetPtr != IntPtr.Zero)
                     return;
 
+                //_targetPtr = Marshal.GetFunctionPointerForDelegate(_target);
                 _targetPtr = CoreClrDelegateFixer.GetFixedPointerForDelegate(_target);
+                
+                var addr = _detourFrom;
+                nint addrPtr = (nint)(&addr);
+                BootstrapInterop.NativeHookAttachDirect(addrPtr, _targetPtr);
+                NativeStackWalk.RegisterHookAddr((ulong)addrPtr, $"Il2CppInterop detour of 0x{addrPtr:X} -> 0x{_targetPtr:X}");
 
-                _originalPtr = BootstrapInterop.NativeHookAttachDirect(_detourFrom, _targetPtr);
-                NativeStackWalk.RegisterHookAddr((ulong)_detourFrom, $"Il2CppInterop detour of 0x{_detourFrom:X} -> 0x{_targetPtr:X}");
+                _originalPtr = addr;
             }
 
             public unsafe void Dispose()
@@ -243,12 +248,15 @@ namespace MelonLoader.Support
                 if (_targetPtr == IntPtr.Zero)
                     return;
 
-                BootstrapInterop.NativeHookDetach(_detourFrom, _targetPtr);
-                NativeStackWalk.UnregisterHookAddr((ulong)_detourFrom);
+                var addr = _detourFrom;
+                nint addrPtr = (nint)(&addr);
+
+                BootstrapInterop.NativeHookDetach(addrPtr, _targetPtr);
+                NativeStackWalk.UnregisterHookAddr((ulong)addrPtr);
 
                 _targetPtr = IntPtr.Zero;
                 _originalPtr = IntPtr.Zero;
-
+                
                 if (_pin.IsAllocated)
                     _pin.Free();
             }

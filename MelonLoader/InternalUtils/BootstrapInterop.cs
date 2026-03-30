@@ -49,34 +49,33 @@ internal static unsafe class BootstrapInterop
         EnableMenuItem(GetSystemMenu(mainWindow, 0), SC_CLOSE, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
     }
 #endif
+
     public static void NativeHookAttach(nint target, nint detour)
-        => NativeHookAttachInternal(target, detour);
-    public static nint NativeHookAttachInternal(nint target, nint detour)
     {
-#if NET6_0_OR_GREATER && !LINUX
+#if NET6_0_OR_GREATER
         // SanityCheckDetour is able to wrap and fix the bad method in a delegate where possible, so we pass the detour by ref.
-        // Herp: Wine and Proton are missing the PssCaptureSnapshot export from kernel32.dll so we skip CoreClrDelegateFixer under that runtime
-        if (!MelonUtils.IsUnderWineOrSteamProton() && !CoreClrDelegateFixer.SanityCheckDetour(ref detour))
-            return IntPtr.Zero;
+        // Herp: Wine/Proton are missing the PssCaptureSnapshot export from kernel32.dll so we skip CoreClrDelegateFixer.SanityCheckDetour under that runtime
+        if (!MelonUtils.IsUnderWineOrSteamProton()
+            && !CoreClrDelegateFixer.SanityCheckDetour(ref detour))
+            return;
 #endif
 
-        nint result = NativeHookAttachDirect(target, detour);
+        NativeHookAttachDirect(target, detour);
 
 #if NET6_0_OR_GREATER
         NativeStackWalk.RegisterHookAddr((ulong)target, $"Mod-requested detour of 0x{target:X} -> 0x{detour:X}");
 #endif
-        return result;
     }
 
-    internal static unsafe nint NativeHookAttachDirect(nint target, nint detour)
+    internal static unsafe void NativeHookAttachDirect(nint target, nint detour)
     {
-        return Library.NativeHookAttach(target, detour);
+        Library.NativeHookAttach((nint*)target, detour);
     }
 
     public static unsafe void NativeHookDetach(nint target, nint detour)
     {
-        if (target == IntPtr.Zero) return;
-        Library.NativeHookDetach(target, detour);
+        Library.NativeHookDetach((nint*)target, detour);
+
 #if NET6_0_OR_GREATER
         NativeStackWalk.UnregisterHookAddr((ulong)target);
 #endif

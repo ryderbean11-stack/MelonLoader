@@ -21,7 +21,7 @@ namespace MelonLoader
         [Obsolete("MelonLoader.Imports.IsDebugMode is Only Here for Compatibility Reasons. Please use MelonLoader.MelonDebug.IsEnabled instead. This will be removed in a future update.", true)]
         public static bool IsDebugMode() => MelonDebug.IsEnabled();
         [Obsolete("MelonLoader.Imports.Hook is Only Here for Compatibility Reasons. Please use MelonLoader.MelonUtils.NativeHookAttach instead. This will be removed in a future update.", true)]
-        public static IntPtr Hook(IntPtr target, IntPtr detour) => MelonUtils.NativeHookAttach(target, detour);
+        public static void Hook(IntPtr target, IntPtr detour) => MelonUtils.NativeHookAttach(target, detour);
         [Obsolete("MelonLoader.Imports.Unhook is Only Here for Compatibility Reasons. Please use MelonLoader.MelonUtils.NativeHookDetach instead. This will be removed in a future update.", true)]
         public static void Unhook(IntPtr target, IntPtr detour) => MelonUtils.NativeHookDetach(target, detour);
     }

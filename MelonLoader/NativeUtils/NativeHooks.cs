@@ -135,7 +135,7 @@ namespace MelonLoader.NativeUtils
                 throw new NullReferenceException("The NativeHook's target has not been set!");
 
             // Capture the return value directly
-            _trampolineHandle = BootstrapInterop.NativeHookAttach(_targetHandle, _detourHandle);
+            _trampolineHandle = BootstrapInterop.NativeHookAttachInternal(_targetHandle, _detourHandle);
 
             if (_trampolineHandle != IntPtr.Zero)
                 _trampoline = (T)Marshal.GetDelegateForFunctionPointer(_trampolineHandle, typeof(T));

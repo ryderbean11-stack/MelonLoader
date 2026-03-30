@@ -49,8 +49,9 @@ internal static unsafe class BootstrapInterop
         EnableMenuItem(GetSystemMenu(mainWindow, 0), SC_CLOSE, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
     }
 #endif
-
-    public static nint NativeHookAttach(nint target, nint detour)
+    public static void NativeHookAttach(nint target, nint detour)
+        => NativeHookAttachInternal(target, detour);
+    public static nint NativeHookAttachInternal(nint target, nint detour)
     {
 #if NET6_0_OR_GREATER && !LINUX
         // SanityCheckDetour is able to wrap and fix the bad method in a delegate where possible, so we pass the detour by ref.

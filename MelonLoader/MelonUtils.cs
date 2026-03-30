@@ -671,10 +671,10 @@ namespace MelonLoader
         public static string GetManagedDirectory() => MelonEnvironment.MelonManagedDirectory;
 
         [Obsolete("Use NativeUtils.NativeHook instead. This will be removed in a future update.", true)]
-        public static IntPtr NativeHookAttach(IntPtr target, IntPtr detour) => BootstrapInterop.NativeHookAttach(target, detour);
+        public static void NativeHookAttach(IntPtr target, IntPtr detour) => BootstrapInterop.NativeHookAttach(target, detour);
 
         [Obsolete("Use NativeUtils.NativeHook instead. This will be removed in a future update.", true)]
-        internal static IntPtr NativeHookAttachDirect(IntPtr target, IntPtr detour) => BootstrapInterop.NativeHookAttachDirect(target, detour);
+        internal static void NativeHookAttachDirect(IntPtr target, IntPtr detour) => BootstrapInterop.NativeHookAttachDirect(target, detour);
 
         [Obsolete("Use NativeUtils.NativeHook instead. This will be removed in a future update.", true)]
         public static void NativeHookDetach(IntPtr target, IntPtr detour) => BootstrapInterop.NativeHookDetach(target, detour);

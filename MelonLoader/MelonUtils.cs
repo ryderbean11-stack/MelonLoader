@@ -414,7 +414,7 @@ namespace MelonLoader
         }
 
         public static void TryPatchAll(this HarmonyLib.Harmony harmony, Type type)
-            => TryPatchAll(harmony, type, false);
+            => TryPatchAll(harmony, type, true);
         
         public static List<MethodInfo> TryPatchAll(this HarmonyLib.Harmony harmony, 
             Type type, 

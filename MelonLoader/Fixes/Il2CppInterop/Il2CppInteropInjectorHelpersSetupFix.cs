@@ -31,14 +31,13 @@ namespace MelonLoader.Fixes.Il2CppInterop
                 _injectorType = typeof(ClassInjector).Assembly.GetType("Il2CppInterop.Runtime.Injection.InjectorHelpers", false);
                 if (_injectorType == null)
                     throw new Exception($"Failed to get InjectorHelpers");
-
+                
                 _setupMethod = _injectorType.GetMethod("Setup", BindingFlags.NonPublic | BindingFlags.Static);
                 if (_setupMethod == null)
                     throw new Exception("Failed to get InjectorHelpers.Setup");
 
-                _setupTranspiler = thisType.GetMethod(nameof(Setup_Transpiler), BindingFlags.NonPublic | BindingFlags.Static);
-                
                 MelonDebug.Msg($"Patching Il2CppInterop InjectorHelpers.Setup...");
+                _setupTranspiler = thisType.GetMethod(nameof(Setup_Transpiler), BindingFlags.NonPublic | BindingFlags.Static);
                 Core.HarmonyInstance.Patch(_setupMethod,
                     null,
                     null,

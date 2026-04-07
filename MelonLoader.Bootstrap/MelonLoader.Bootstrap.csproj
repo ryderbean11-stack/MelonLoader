@@ -47,6 +47,16 @@
         <LinkerArg Include="-Wl,-u,_SetRlimitHook" />
     </ItemGroup>
 
+    <!-- Ship the launch wrapper alongside the dylib so end users have a ready-made
+         Steam launch option that survives macOS LaunchServices stripping DYLD_*.
+         Source file is committed with +x in the index; CopyToOutputDirectory and
+         Publish preserve Unix permissions on macOS so no chmod is needed. -->
+    <ItemGroup Condition="'$(RuntimeIdentifier.StartsWith(`osx-`))' == 'true'">
+        <None Include="OSXEntry/melonloader-launch.sh"
+              CopyToOutputDirectory="PreserveNewest"
+              Link="melonloader-launch.sh" />
+    </ItemGroup>
+
     <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
         <DebugSymbols>false</DebugSymbols>
         <DebugType>none</DebugType>

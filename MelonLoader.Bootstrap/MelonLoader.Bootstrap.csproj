@@ -23,12 +23,28 @@
         <LinkStandardCPlusPlusLibrary>true</LinkStandardCPlusPlusLibrary>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-x64'">
+        <OSXEntryArch>x86_64</OSXEntryArch>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">
+        <OSXEntryArch>arm64</OSXEntryArch>
+    </PropertyGroup>
+
     <Target Condition="'$(RuntimeIdentifier.StartsWith(`osx-`))' == 'true'" Name="BuildOSXEntry" BeforeTargets="Build">
-        <Exec Command="g++ -c -O2 -fPIC OSXEntry/osxentry.cpp -o $(OSXEntryPath)" />
+        <!-- -arch is required because g++ on Apple Silicon defaults to arm64, producing
+             an object file that ld64 silently ignores when linking an x86_64 dylib. -->
+        <Exec Command="g++ -arch $(OSXEntryArch) -c -O2 -fPIC OSXEntry/osxentry.cpp -o $(OSXEntryPath)" />
     </Target>
 
     <ItemGroup Condition="'$(RuntimeIdentifier.StartsWith(`win-`))' == 'true'">
         <LinkerArg Include="/DEF:Exports.def" />
+    </ItemGroup>
+
+    <!-- Force ld64 to keep _SetRlimitHook and, by extension, the __DATA,__interpose struct
+         that references it. Without this, dead-stripping removes the interpose entry that
+         triggers MelonLoader on macOS, because nothing in the managed code references it. -->
+    <ItemGroup Condition="'$(RuntimeIdentifier.StartsWith(`osx-`))' == 'true'">
+        <LinkerArg Include="-Wl,-u,_SetRlimitHook" />
     </ItemGroup>
 
     <PropertyGroup Condition="'$(Configuration)' != 'Debug'">

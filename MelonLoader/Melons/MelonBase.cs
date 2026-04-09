@@ -451,6 +451,9 @@ namespace MelonLoader
             {
                 try
                 {
+                    // Harmony.PatchAll(Assembly) sets allowUnannotatedType to false
+                    // Harmony.PatchAll(Type) sets allowUnannotatedType to true
+                    // This mimics the behavior of Harmony.PatchAll(Assembly)
                     var proc = HarmonyInstance.CreateClassProcessor(type, false);
                     var patches = proc.Patch();
                     if (MelonDebug.IsEnabled() && (patches != null) && (patches.Count > 0))

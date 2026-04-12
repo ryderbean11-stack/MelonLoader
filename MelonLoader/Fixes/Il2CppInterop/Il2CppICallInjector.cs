@@ -182,11 +182,10 @@ namespace MelonLoader.Fixes.Il2CppInterop
 
             // Find Managed Method
             MethodInfo targetMethod = null;
-            try
+            MethodInfo[] allMethods = newType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+            foreach (var method in allMethods)
             {
-                // Get All Methods
-                MethodInfo[] allMethods = newType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
-                foreach (var method in allMethods)
+                try
                 {
                     // Validate Method
                     if (method == null)
@@ -216,7 +215,7 @@ namespace MelonLoader.Fixes.Il2CppInterop
                     if ((method.Name != methodDesc)
                         && (methodSignature != methodDesc))
                         continue;
-                    
+
                     DynamicMethodDefinition dynmethod = method.ToNewDynamicMethodDefinition();
                     ILContext ilcontext = new(dynmethod.Definition);
                     ILCursor ilcursor = new(ilcontext);
@@ -245,6 +244,7 @@ namespace MelonLoader.Fixes.Il2CppInterop
                             break;
                         }
                     }
+
                     if (!IsValid)
                     {
                         ilcontext.Dispose();
@@ -253,20 +253,16 @@ namespace MelonLoader.Fixes.Il2CppInterop
                     }
 
                     // Found Shim
-                    targetMethod = method;
+                    unityShimMethod = method;
                     requestedSignature = $"{typeName}::{methodSignature}";
                     ilcontext.Dispose();
                     dynmethod.Dispose();
-                    break;
+                    return true;
                 }
+                catch {  }
             }
-            catch { return false; }
-            if (targetMethod == null)
-                return false;
-
-            // Inject ICall
-            unityShimMethod = targetMethod;
-            return true;
+            
+            return false;
         }
 
         private static (object, DynamicMethodDefinition, MethodInfo, IntPtr) GenerateTrampoline(MethodInfo unityShimMethod)

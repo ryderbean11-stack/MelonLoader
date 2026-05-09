@@ -147,9 +147,6 @@ internal static partial class Dotnet
 
     private static string? GetHostfxrPathFromExport()
     {
-        if (Marshal.GetFunctionPointerForDelegate(get_hostfxr_path) == IntPtr.Zero)
-            return null;
-        
         var buffer = new StringBuilder(1024);
         var bufferSize = (nint)buffer.Capacity;
         var result = get_hostfxr_path(buffer, ref bufferSize, 0);

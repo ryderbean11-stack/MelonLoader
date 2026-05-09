@@ -69,28 +69,39 @@ internal static class Il2CppHandler
             return;
         }
 
-        // 1) First try to use a portable .NET runtime in the game root
+        // 1) First try to use a portable .NET runtime
         MelonDebug.Log("Attempting to load hostfxr using portable .NET runtime");
         if (Dotnet.TryHostFxrFromPortableDir())
-            goto HostfxrLoaded;
+        {
+            InitializeDomain(runtimeConfigPath, nativeHostPath);
+            return;
+        }
 
         // 2) If no portable runtime is found or it fails, use the normal system detection/installation
         MelonDebug.Log("Attempting to load hostfxr from system");
-        if (!Dotnet.GetHostFxrSystemPath(out var path)
-            || string.IsNullOrEmpty(path)
-            || !Dotnet.LoadHostfxrFromFile(path))
+        if (Dotnet.GetHostFxrSystemPath(out var path)
+            && !string.IsNullOrEmpty(path)
+            && Dotnet.LoadHostfxrFromFile(path))
         {
-            DotnetInstaller.AttemptInstall();
-            if (!Dotnet.GetHostFxrSystemPath(out path)
-                || string.IsNullOrEmpty(path)
-                || !Dotnet.LoadHostfxrFromFile(path))
-            {
-                Core.Logger.Error("Failed to load Hostfxr");
-                return;
-            }
+            InitializeDomain(runtimeConfigPath, nativeHostPath);
+            return;
         }
+        
+        // 3) Try to install runtime then attempt system detection/installation again
+        DotnetInstaller.AttemptInstall();
+        if (Dotnet.GetHostFxrSystemPath(out path)
+            && Dotnet.LoadHostfxrFromFile(path))
+        {
+            InitializeDomain(runtimeConfigPath, nativeHostPath);
+            return;
+        }
+        
+        // Failure
+        Core.Logger.Error("Failed to load Hostfxr");
+    }
 
-    HostfxrLoaded:
+    private static void InitializeDomain(string runtimeConfigPath, string nativeHostPath)
+    {
         MelonDebug.Log("Initializing domain");
         if (!Dotnet.InitializeForRuntimeConfig(runtimeConfigPath, out var context))
         {

@@ -90,6 +90,7 @@ internal static class Il2CppHandler
         // 3) Try to install runtime then attempt system detection/installation again
         DotnetInstaller.AttemptInstall();
         if (Dotnet.GetHostFxrSystemPath(out path)
+            && !string.IsNullOrEmpty(path)
             && Dotnet.LoadHostfxrFromFile(path))
         {
             InitializeDomain(runtimeConfigPath, nativeHostPath);

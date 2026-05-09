@@ -83,10 +83,10 @@ Use it to help Develop and Debug MelonLoader, Plugins, and Mods.
 
 | Installer Guides: |
 | - |
-| [INSTALL](https://github.com/LavaGang/MelonLoader.Installer/blob/master/README.md#how-to-install-re-install-or-update-melonloader) |
-| [UPDATE](https://github.com/LavaGang/MelonLoader.Installer/blob/master/README.md#how-to-install-re-install-or-update-melonloader) |
-| [RE-INSTALL](https://github.com/LavaGang/MelonLoader.Installer/blob/master/README.md#how-to-install-re-install-or-update-melonloader) |
-| [UN-INSTALL](https://github.com/LavaGang/MelonLoader.Installer/blob/master/README.md#how-to-un-install-melonloader) |
+| [INSTALL](https://github.com/LavaGang/MelonLoader.Installer#melonloader-installation) |
+| [UPDATE](https://github.com/LavaGang/MelonLoader.Installer#melonloader-installation) |
+| [RE-INSTALL](https://github.com/LavaGang/MelonLoader.Installer#melonloader-installation) |
+| [UN-INSTALL](https://github.com/LavaGang/MelonLoader.Installer#melonloader-installation) |
 
 ---
 
@@ -102,9 +102,9 @@ Use it to help Develop and Debug MelonLoader, Plugins, and Mods.
 
 1. Make sure the Game is Closed and Not Running before attempting to Install.
 2. Make sure you have all the [Requirements](#requirements) Installed before attempting to Install.
-3. Download MelonLoader [[x86](https://github.com/LavaGang/MelonLoader/releases/latest/download/MelonLoader.x86.zip)] [[x64](https://github.com/LavaGang/MelonLoader/releases/latest/download/MelonLoader.x64.zip)]
-4. Extract the MelonLoader folder from the MelonLoader Zip Archive to the Game's Installation Folder.
-5. Extract version.dll & dobby.dll from the MelonLoader Zip Archive to the Game's Installation Folder.
+3. Download MelonLoader Archive from [Releases](https://github.com/LavaGang/MelonLoader/releases/)
+4. Extract the MelonLoader folder from the MelonLoader Archive to the Game's Installation Folder.
+5. Extract version.dll & dobby.dll from the MelonLoader Archive to the Game's Installation Folder.
 
 
 ### UN-INSTALL:

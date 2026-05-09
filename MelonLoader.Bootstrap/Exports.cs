@@ -32,15 +32,6 @@ internal static class Exports
 #if LINUX || OSX
     private static readonly string CurrentAssemblyName = Assembly.GetExecutingAssembly().GetName().Name!;
     private static bool _hookPlayerMainEntered;
-    private static readonly string? ProcessPath = Process.GetCurrentProcess().MainModule?.FileName;
-    private static readonly string? ProcessDirectory = Path.GetDirectoryName(ProcessPath);
-
-    private const string LibExtension =
-#if OSX
-        "dylib";
-#else
-        "so";
-#endif
     private const string LdPreloadEnvName =
 #if OSX
         "DYLD_INSERT_LIBRARIES";
@@ -61,20 +52,17 @@ internal static class Exports
     // mess up.
     private static bool IsLikelyUnityPlayer()
     {
-        if (ProcessPath is null || ProcessDirectory is null)
-            return false;
-
 #if OSX
-        string? parentProcessDirectory = Path.GetDirectoryName(ProcessDirectory);
+        string? parentProcessDirectory = Path.GetDirectoryName(Core.GameDir);
         if (parentProcessDirectory is null)
             return false;
         if (!Directory.Exists(Path.Combine(parentProcessDirectory, "Resources", "Data")))
             return false;
 #else
-        if (!Directory.Exists(Path.Combine(ProcessDirectory, "Data")))
+        if (!Directory.Exists(Path.Combine(Core.GameDir, "Data")))
         {
-            string fileName = Path.GetFileNameWithoutExtension(ProcessPath);
-            string dataDirectory = Path.Combine(ProcessDirectory, $"{fileName}_Data");
+            string fileName = Path.GetFileNameWithoutExtension(Core.ProcessPath);
+            string dataDirectory = Path.Combine(Core.GameDir, $"{fileName}_Data");
             if (!Directory.Exists(dataDirectory))
                 return false;
         }
@@ -88,11 +76,8 @@ internal static class Exports
     // since hooking on libc's "pre main" is inherently dangerous so the less time we have this, the better
     private static void RemoveLibraryPreloadEnv()
     {
-        if (ProcessPath is null || ProcessDirectory is null)
-            return;
-
         string[] ldPreloads = Environment.GetEnvironmentVariable(LdPreloadEnvName)!.Split(":");
-        string newLdPreload = string.Join(':', ldPreloads.Where(x => x != $"{CurrentAssemblyName}.{LibExtension}"));
+        string newLdPreload = string.Join(':', ldPreloads.Where(x => x != $"{CurrentAssemblyName}.{Core.LibExtension}"));
         string[]? ldLibraryPaths = Environment.GetEnvironmentVariable(LdPathEnvName)?.Split(":");
 
         // It's possible to hook without a library path set so we only remove ourselves if the variable had a value
@@ -100,9 +85,9 @@ internal static class Exports
         {
             string expectedLibFullPath =
 #if OSX
-            Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(ProcessDirectory)))!;
+            Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Core.GameDir)))!;
 #else
-                ProcessDirectory;
+                Core.GameDir;
 #endif
 
             string newLibraryPath = string.Join(':', ldLibraryPaths

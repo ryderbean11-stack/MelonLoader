@@ -18,17 +18,27 @@ public static class Core
     internal static InternalLogger PlayerLogger { get; private set; } = new(ColorARGB.Turquoise, "UNITY");
     public static string DataDir { get; private set; } = null!;
     public static string GameDir { get; private set; } = null!;
+    public static string ProcessPath { get; private set; } = null!;
+    
+    public const string LibExtension =
+#if OSX
+        "dylib";
+#elif WINDOWS
+        "dll";
+#else
+        "so";
+#endif
 
     [RequiresDynamicCode("Calls InitConfig")]
     public static void Init(nint moduleHandle)
     {
         LibraryHandle = moduleHandle;
 
-        var exePath = Environment.ProcessPath!;
-        GameDir = Path.GetDirectoryName(exePath)!;
+        ProcessPath = Environment.ProcessPath!;
+        GameDir = Path.GetDirectoryName(ProcessPath)!;
 
 #if !OSX
-        DataDir = Path.Combine(GameDir, Path.GetFileNameWithoutExtension(exePath) + "_Data");
+        DataDir = Path.Combine(GameDir, Path.GetFileNameWithoutExtension(ProcessPath) + "_Data");
 #else
         DataDir = Path.Combine(Path.GetDirectoryName(GameDir)!, "Resources", "Data");
 #endif

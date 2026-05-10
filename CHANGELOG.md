@@ -45,10 +45,40 @@
 ### v0.7.3
 
 1. Updated ``AsmResolver`` to ``6.0.0-beta.5``
-2. Updated ``Il2CppInterop`` to ``1.5.1-ci.829``
+2. Updated ``Il2CppInterop`` to ``1.5.1-ci.845``
 3. Fixed an issue with ``[D]`` Debug Mode Identifier in Console Title not being appended when set with Game Information
 4. Fixed an issue with ``MelonUtils.SetConsoleTitle`` not working when ``DontSetTitle`` Console option is true
 5. Fixed an issue with ``Loader.cfg`` saving ``DebugMode`` as true when first launching with a Debug Build
+6. Implemented support for .NET Portable directories under ``<GAME>/dotnet`` and ``<GAME>/MelonLoader/Dependencies/dotnet``   (Credits to [JoShMiQueL](https://github.com/JoShMiQueL))
+7. Fixed compilation issues for MacOS
+8. Modified Il2Cpp Type Registration to be logged when in Debug Mode
+9. Fixed cross-compilation issues for Linux
+10. Fixed Initialization Issues with native Mono and Il2Cpp games on Linux
+11. Fixed an issue with Automatic Melon Harmony Patching looking for unannotated types
+12. Fixed UnityEngine.Il2CppAssetBundleManager to support Unity 6000+   (Credits to [Javialonqv](https://github.com/Javialonqv))
+13. Fixed NativeHook Functionality for Linux   (Credits to [aldelaro5](https://github.com/aldelaro5))
+14. Fixed AssemblyVerifier.IsNameValid to support Unicode Standard Annex 15   (Credits to [kohanis](https://github.com/kohanis))
+15. Fixed an issue with ``Loader.cfg`` having its values overwritten by defaults
+16. Fixed an issue with ``Loader.cfg`` not recreating missing options
+17. Fixed an issue with ArgumentException being thrown when parsing duplicate launch options
+18. Adjusted NuGet package to include package references   (Credits to [ds5678](https://github.com/ds5678))
+19. Fixed an issue with CoreClrDelegateFixer causing crashes under Wine/Proton
+20. Fixed NativeHook Backwards Compatibility
+21. Reverted BootstrapInterop NativeHook exports to utilize pointers again to work around recursive trampoline issue
+22. Fixed MelonUtils.TryPatchAll methods to allow returned list of generated patches
+23. Reimplemented warning for CoreClrDelegateFixer.SanityCheckDetour when reusing a pinned delegate
+24. Added ``0Harmony.dll`` to the list of assemblies to be force-resolved from the included file to fix resolve issues
+25. Fixed an issue with Warnings and Errors not having identifiers
+26. Aligned MelonUtils.TryPatchAll extensions to expected Harmony.PatchAll behavior
+27. Improved Il2CppInterop InjectionHelpers.Setup Fix
+28. Implemented Tomlet Mapping for Rect and RectInt
+29. Adjusted OnPreferencesSaved and OnPreferencesLoaded callbacks to fix an issue with them sometimes not being triggered
+30. Fixed Il2CppICallInjector to ignore shim methods that use GetPinnableReference
+31. Fixed an issue with MacOS Bootstrap not having the needed ``__interpose``   (Credits to [Rukongai](https://github.com/Rukongai))
+32. Added a Launch Script for easier MacOS installation   (Credits to [Rukongai](https://github.com/Rukongai))
+33. Fixed an issue with Il2CppICallInjector not handling complete Method Signatures
+34. Fixed UnityEngine.Il2CppImageConversionManager to support Unity 6000+   (Credits to [Javialonqv](https://github.com/Javialonqv))
+35. Improved .NET Portable Directory loading
 
 ---
 

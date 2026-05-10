@@ -385,3 +385,4 @@ x64
 # Exported OBJs
 *.o
 *.obj
+*.kate-swp

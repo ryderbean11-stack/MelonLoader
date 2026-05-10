@@ -19,6 +19,9 @@
 <p align="center">
 	<a href="https://github.com/LavaGang/MelonLoader.Installer/releases/latest/download/MelonLoader.Installer.Linux"><img src="https://img.shields.io/github/downloads/LavaGang/MelonLoader.Installer/latest/MelonLoader.Installer.Linux?style=for-the-badge&label=Linux%20Installer"></a>
 </p>
+<p align="center">
+	<a href="https://github.com/LavaGang/MelonLoader.Installer/releases/latest/download/MelonLoader.Installer.MacOS.dmg"><img src="https://img.shields.io/github/downloads/LavaGang/MelonLoader.Installer/latest/MelonLoader.Installer.MacOS.dmg?style=for-the-badge&label=MacOS%20Installer"></a>
+</p>
 
 ---
 
@@ -56,16 +59,6 @@ Use it to help Develop and Debug MelonLoader, Plugins, and Mods.
 | [master](https://nightly.link/LavaGang/MelonLoader/workflows/build/master) |
 | [alpha-development](https://nightly.link/LavaGang/MelonLoader/workflows/build/alpha-development) |
 | [universality](https://nightly.link/LavaGang/MelonLoader/workflows/build/universality) |
-
----
-
-## ❤️ SPECIAL THANKS TO OUR WONDERFUL PATRONS ❤️
-
-- **Givo**  
-- **Florian Fahrenberger**  
-- **Python**  
-- **SirCoolness**  
-- **SlidyDev**  
 
 ---
 

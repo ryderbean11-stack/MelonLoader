@@ -12,37 +12,41 @@ namespace MelonLoader.Bootstrap;
 
 internal static class Exports
 {
-#if WINDOWS
-
-    [UnmanagedCallersOnly(EntryPoint = "DllMain")]
-    [RequiresDynamicCode("Calls InitConfig")]
-    public static bool DllMain(nint hModule, uint ulReasonForCall, nint lpReserved)
-    {
-        if (ulReasonForCall != 1)
-            return true;
-
-        Proxy.ProxyResolver.Init(hModule);
-        Core.Init(hModule);
-
-        return true;
-    }
-
-#endif
-
-#if LINUX || OSX
     private static readonly string CurrentAssemblyName = Assembly.GetExecutingAssembly().GetName().Name!;
+    
+    public static nint LibraryHandle { get; private set; }
+    public static string DataDir { get; private set; } = null!;
+    
+    public static string ProcessPath { get; private set; } = null!;
+    public static string ProcessFileName { get; private set; } = null!;
+    public static string ProcessFileNameWithoutExt { get; private set; } = null!;
+    public static string ProcessDirectory { get; private set; } = null!;
+    
+#if LINUX || OSX
     private static bool _hookPlayerMainEntered;
+    
     private const string LdPreloadEnvName =
 #if OSX
         "DYLD_INSERT_LIBRARIES";
 #else
         "LD_PRELOAD";
 #endif
+    
     private const string LdPathEnvName =
 #if OSX
         "DYLD_LIBRARY_PATH";
 #else
         "LD_LIBRARY_PATH";
+#endif
+#endif
+    
+    public const string LibExtension =
+#if OSX
+        "dylib";
+#elif WINDOWS
+        "dll";
+#else
+        "so";
 #endif
 
     // It's not guaranteed that the first call is the one we want: it's possible someone was wrapping
@@ -50,32 +54,26 @@ internal static class Exports
     // Unity game. The following heuristics checks the presence of a gameName_Data or Data folder which
     // is at least required for the game to boot. It's not perfect, but it makes it much more likely to not
     // mess up.
-    private static bool IsLikelyUnityPlayer()
+    private static bool Initialize(nint moduleHandle)
     {
-        string? ProcessPath = Process.GetCurrentProcess().MainModule?.FileName;
-        string? ProcessDirectory = Path.GetDirectoryName(ProcessPath);
+        LibraryHandle = moduleHandle;
         
-        if (ProcessPath is null || ProcessDirectory is null)
-            return false;
+        ProcessPath = Environment.ProcessPath!;
+        ProcessFileName = Path.GetFileName(ProcessPath);
+        ProcessFileNameWithoutExt = Path.GetFileNameWithoutExtension(ProcessPath);
+        ProcessDirectory = Path.GetDirectoryName(ProcessPath)!;
 
 #if OSX
-        string? parentProcessDirectory = Path.GetDirectoryName(ProcessDirectory);
-        if (parentProcessDirectory is null)
-            return false;
-        if (!Directory.Exists(Path.Combine(parentProcessDirectory, "Resources", "Data")))
-            return false;
+        DataDir = Path.Combine(Path.GetDirectoryName(ProcessDirectory)!, "Resources", "Data");
 #else
-        if (!Directory.Exists(Path.Combine(ProcessDirectory, "Data")))
-        {
-            string fileName = Path.GetFileNameWithoutExtension(ProcessPath);
-            string dataDirectory = Path.Combine(ProcessDirectory, $"{fileName}_Data");
-            if (!Directory.Exists(dataDirectory))
-                return false;
-        }
+        DataDir = Path.Combine(ProcessDirectory, "Data");
+        if (!Directory.Exists(DataDir))
+            DataDir = Path.Combine(ProcessDirectory, ProcessFileNameWithoutExt + "_Data");
 #endif
-        return true;
+        return Directory.Exists(DataDir);
     }
 
+#if LINUX || OSX
     // We have confirmed Unity is about to get its main invoked, but we need to protect us against
     // double entry from other processes the game might launch. The most reliable way is to simply cut
     // original link meaning remove ourselves from LD_PRELOAD / LD_LIBRARY_PATH. It's much safer anyway
@@ -83,7 +81,7 @@ internal static class Exports
     private static void RemoveLibraryPreloadEnv()
     {
         string[] ldPreloads = Environment.GetEnvironmentVariable(LdPreloadEnvName)!.Split(":");
-        string newLdPreload = string.Join(':', ldPreloads.Where(x => x != $"{CurrentAssemblyName}.{Core.LibExtension}"));
+        string newLdPreload = string.Join(':', ldPreloads.Where(x => x != $"{CurrentAssemblyName}.{LibExtension}"));
         string[]? ldLibraryPaths = Environment.GetEnvironmentVariable(LdPathEnvName)?.Split(":");
 
         // It's possible to hook without a library path set so we only remove ourselves if the variable had a value
@@ -91,9 +89,9 @@ internal static class Exports
         {
             string expectedLibFullPath =
 #if OSX
-            Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Core.GameDir)))!;
+                Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(ProcessDirectory)))!;
 #else
-                Core.GameDir;
+                ProcessDirectory;
 #endif
 
             string newLibraryPath = string.Join(':', ldLibraryPaths
@@ -104,8 +102,25 @@ internal static class Exports
         LibcNative.Setenv(LdPreloadEnvName, newLdPreload, true);
         Environment.SetEnvironmentVariable(LdPreloadEnvName, newLdPreload);
     }
+#endif
+    
+#if WINDOWS
+    [UnmanagedCallersOnly(EntryPoint = "DllMain")]
+    [RequiresDynamicCode("Calls InitConfig")]
+    public static bool DllMain(nint hModule, uint ulReasonForCall, nint lpReserved)
+    {
+        if (ulReasonForCall != 1)
+            return true;
 
-#if OSX
+        if (!Initialize(hModule))
+            return true;
+
+        Proxy.ProxyResolver.Init(hModule);
+        Core.Init();
+
+        return true;
+    }
+#elif OSX
     [UnmanagedCallersOnly(EntryPoint = "Init", CallConvs = [typeof(CallConvCdecl)])]
     [RequiresDynamicCode("Calls InitConfig")]
     public static void Init()
@@ -113,19 +128,18 @@ internal static class Exports
         // Double entry protection against the same process
         if (_hookPlayerMainEntered)
             return;
-        if (!IsLikelyUnityPlayer())
-            return;
-        _hookPlayerMainEntered = true;
-
-        RemoveLibraryPreloadEnv();
 
         string libraryPath = $"{CurrentAssemblyName}.dylib";
         nint handle = NativeLibrary.Load(libraryPath);
-        Core.Init(handle);
-    }
-#endif
+        if (!Initialize(handle))
+            return;
 
-#if LINUX
+        _hookPlayerMainEntered = true;
+
+        RemoveLibraryPreloadEnv();
+        Core.Init();
+    }
+#elif LINUX
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private unsafe delegate int MainFn(int argc, char** argv, char** envp);
 
@@ -152,8 +166,10 @@ internal static class Exports
         // Double entry protection against the same process
         if (_hookPlayerMainEntered)
             return LibcNative.LibCStartMain(main, argc, argv, init, fini, rtLdFini, stackEnd);
-
-        if (!IsLikelyUnityPlayer())
+        
+        string libraryPath = $"{CurrentAssemblyName}.so";
+        nint handle = NativeLibrary.Load(libraryPath);
+        if (!Initialize(handle))
             return LibcNative.LibCStartMain(main, argc, argv, init, fini, rtLdFini, stackEnd);
 
         RemoveLibraryPreloadEnv();
@@ -176,12 +192,9 @@ internal static class Exports
             return _originalMain(argc, argv, envp);
         _hookPlayerMainEntered = true;
 
-        string libraryPath = $"{CurrentAssemblyName}.so";
-        nint handle = NativeLibrary.Load(libraryPath);
-        Core.Init(handle);
+        Core.Init();
         return _originalMain(argc, argv, envp);
     }
-#endif
 #endif
 
     // Herp: This is dirty Managed->Native->Managed pointer manipulation but trying to return a pointer causes crashes

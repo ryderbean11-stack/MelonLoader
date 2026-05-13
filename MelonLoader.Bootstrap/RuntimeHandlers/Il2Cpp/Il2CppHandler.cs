@@ -122,12 +122,12 @@ internal static class Il2CppHandler
             return;
         }
 
-        var startFuncPtr = Core.LibraryHandle;
+        var startFuncPtr = Exports.LibraryHandle;
 
         MelonDebug.Log("Invoking NativeHost entry");
         initialize(ref startFuncPtr);
 
-        if (startFuncPtr == 0 || startFuncPtr == Core.LibraryHandle)
+        if (startFuncPtr == 0 || startFuncPtr == Exports.LibraryHandle)
         {
             Core.Logger.Error($"Managed did not return the initial function pointer");
             return;

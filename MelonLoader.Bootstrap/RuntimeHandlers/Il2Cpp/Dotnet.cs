@@ -76,9 +76,9 @@ internal static partial class Dotnet
         string? portableDir = null;
         try
         {
-            portableDir = Path.Combine(Core.GameDir, "dotnet");
+            portableDir = Path.Combine(Exports.ProcessDirectory, "dotnet");
             if (!Directory.Exists(portableDir))
-                portableDir = Path.Combine(Core.GameDir, "MelonLoader", "Dependencies", "dotnet");
+                portableDir = Path.Combine(Exports.ProcessDirectory, "MelonLoader", "Dependencies", "dotnet");
             if (!Directory.Exists(portableDir))
                 return false;
             if (!FindHostFxrInDirectory(portableDir, out hostfxrPath))
@@ -165,7 +165,7 @@ internal static partial class Dotnet
         if (string.IsNullOrEmpty(path))
             return false;
         
-        string filename = $"hostfxr.{Core.LibExtension}";
+        string filename = $"hostfxr.{Exports.LibExtension}";
 #if !WINDOWS
         filename = $"lib{filename}";
 #endif

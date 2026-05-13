@@ -140,9 +140,9 @@ internal static class MonoHandler
         if (Mono is { IsOld: false, DomainSetConfig: not null })
         {
             string configFile = $"{Environment.ProcessPath}.config";
-            MelonDebug.Log($"Setting Mono Config paths: base_dir: {Core.GameDir}, config_file_name: {configFile}");
+            MelonDebug.Log($"Setting Mono Config paths: base_dir: {Exports.ProcessDirectory}, config_file_name: {configFile}");
 
-            Mono.DomainSetConfig(Domain, Core.GameDir, configFile);
+            Mono.DomainSetConfig(Domain, Exports.ProcessDirectory, configFile);
         }
 
         MelonDebug.Log("Parsing default Mono config");
@@ -240,7 +240,7 @@ internal static class MonoHandler
         MelonDebug.Log("Invoking managed core init");
 
         nint ex = 0;
-        var bootstrapHandle = Core.LibraryHandle;
+        var bootstrapHandle = Exports.LibraryHandle;
         var initArgs = stackalloc nint*[]
         {
             &bootstrapHandle

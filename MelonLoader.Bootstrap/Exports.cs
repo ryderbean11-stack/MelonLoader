@@ -52,17 +52,23 @@ internal static class Exports
     // mess up.
     private static bool IsLikelyUnityPlayer()
     {
+        string? ProcessPath = Process.GetCurrentProcess().MainModule?.FileName;
+        string? ProcessDirectory = Path.GetDirectoryName(ProcessPath);
+        
+        if (ProcessPath is null || ProcessDirectory is null)
+            return false;
+
 #if OSX
-        string? parentProcessDirectory = Path.GetDirectoryName(Core.GameDir);
+        string? parentProcessDirectory = Path.GetDirectoryName(ProcessDirectory);
         if (parentProcessDirectory is null)
             return false;
         if (!Directory.Exists(Path.Combine(parentProcessDirectory, "Resources", "Data")))
             return false;
 #else
-        if (!Directory.Exists(Path.Combine(Core.GameDir, "Data")))
+        if (!Directory.Exists(Path.Combine(ProcessDirectory, "Data")))
         {
-            string fileName = Path.GetFileNameWithoutExtension(Core.ProcessPath);
-            string dataDirectory = Path.Combine(Core.GameDir, $"{fileName}_Data");
+            string fileName = Path.GetFileNameWithoutExtension(ProcessPath);
+            string dataDirectory = Path.Combine(ProcessDirectory, $"{fileName}_Data");
             if (!Directory.Exists(dataDirectory))
                 return false;
         }

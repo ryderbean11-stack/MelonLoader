@@ -75,9 +75,19 @@ internal static partial class DotnetHandler
         if (ScanDirectory(portableDir)
             && InitializeDomain(runtimeConfigPath, nativeHostPath))
             return;
+
+        string basePortableDir = Path.Combine(LoaderConfig.Current.Loader.BaseDirectory, "dotnet");
+        if (portableDir != basePortableDir)
+        {
+            portableDir = basePortableDir;
+            MelonDebug.Log($"Attempting to load hostfxr using .NET runtime from: {portableDir}");
+            if (ScanDirectory(portableDir)
+                && InitializeDomain(runtimeConfigPath, nativeHostPath))
+                return;
+        }
         
         // Try to use a portable runtime from repository
-        portableDir = Path.Combine(Exports.ProcessDirectory, "MelonLoader", "Dependencies", "dotnet");
+        portableDir = Path.Combine(LoaderConfig.Current.Loader.BaseDirectory, "MelonLoader", "Dependencies", "dotnet");
         MelonDebug.Log($"Attempting to load hostfxr using .NET runtime from: {portableDir}");
         if (ScanDirectory(portableDir)
             && InitializeDomain(runtimeConfigPath, nativeHostPath))

@@ -82,6 +82,7 @@
 36. Fixed an issue with Bootstrap Core Pathing being used before Initialization   (Credits to [Squaduck](https://github.com/Squaduck))
 37. Rewrote .NET Handling to better abide by overrides
 38. Implemented Portable .NET Runtime Fallback to help minimize HostFxr load failures
+39. Fixed an issue with .NET Handling not abiding by Base Directory
 
 ---
 

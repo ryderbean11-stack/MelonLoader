@@ -53,7 +53,7 @@ internal static class DotnetPortable
         }
 
         Core.Logger.Msg("Extracting the Portable .NET Runtime...");
-        string dependenciesDir = Path.Combine(Exports.ProcessDirectory, "MelonLoader", "Dependencies");
+        string dependenciesDir = Path.Combine(LoaderConfig.Current.Loader.BaseDirectory, "MelonLoader", "Dependencies");
         string dotnetDir = Path.Combine(dependenciesDir, "dotnet");
         if (!Directory.Exists(dependenciesDir))
             Directory.CreateDirectory(dependenciesDir);

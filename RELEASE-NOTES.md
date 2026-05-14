@@ -37,6 +37,7 @@
 * Fixed an issue with Bootstrap Core Pathing being used before Initialization   [[#1163](<https://github.com/LavaGang/MelonLoader/pull/1163>)]
 * Rewrote .NET Handling to better abide by overrides
 * Implemented Portable .NET Runtime Fallback to help minimize HostFxr load failures
+* Fixed an issue with .NET Handling not abiding by Base Directory
 
 ## Contributors:
 * [JoShMiQueL](<https://github.com/JoShMiQueL>) made a contribution in [#1062](<https://github.com/LavaGang/MelonLoader/pull/1062>)

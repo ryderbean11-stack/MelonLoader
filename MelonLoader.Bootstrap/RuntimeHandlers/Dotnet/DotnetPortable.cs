@@ -8,11 +8,11 @@ internal static class DotnetPortable
 {
     private const string dotnetRuntimeDownload =
 #if LINUX
-        "https://github.com/LavaGang/MelonLoader/raw/refs/heads/alpha-development/Dependencies/Dotnet6/dotnet6.linux.x86_64.zip";
+        "https://github.com/LavaGang/PortableDotnet/raw/refs/heads/6.0.25/dotnet6.linux.x86_64.zip";
 #elif OSX
-        "https://github.com/LavaGang/MelonLoader/raw/refs/heads/alpha-development/Dependencies/Dotnet6/dotnet6.macos.x86_64.zip";
+        "https://github.com/LavaGang/PortableDotnet/raw/refs/heads/6.0.25/dotnet6.macos.x86_64.zip";
 #elif WINDOWS
-        "https://github.com/LavaGang/MelonLoader/raw/refs/heads/alpha-development/Dependencies/Dotnet6/dotnet6.windows.x86_64.zip";
+        "https://github.com/LavaGang/PortableDotnet/raw/refs/heads/6.0.25/dotnet6.windows.x86_64.zip";
 #endif
     
     private static readonly FileDownload downloadRequest = new(dotnetRuntimeDownload);

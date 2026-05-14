@@ -41,7 +41,7 @@
 
 ## Contributors:
 * [JoShMiQueL](<https://github.com/JoShMiQueL>) made a contribution in [#1062](<https://github.com/LavaGang/MelonLoader/pull/1062>)
-* [Javialonqv](<https://github.com/Javialonqv>) made a contribution in [#1122](<https://github.com/LavaGang/MelonLoader/pull/1122>) & [#1144](<https://github.com/LavaGang/MelonLoader/pull/1144>)]
+* [Javialonqv](<https://github.com/Javialonqv>) made a contribution in [#1122](<https://github.com/LavaGang/MelonLoader/pull/1122>) & [#1144](<https://github.com/LavaGang/MelonLoader/pull/1144>)
 * [aldelaro5](<https://github.com/aldelaro5>) made a contribution in [#1123](<https://github.com/LavaGang/MelonLoader/pull/1123>)
 * [kohanis](<https://github.com/kohanis>) made a contribution in [#1094](<https://github.com/LavaGang/MelonLoader/pull/1094>)
 * [ds5678](<https://github.com/ds5678>) made a contribution in [#1127](<https://github.com/LavaGang/MelonLoader/pull/1127>)

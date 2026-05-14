@@ -2,9 +2,9 @@
 using System.Text;
 using MelonLoader.Bootstrap.Logging;
 
-namespace MelonLoader.Bootstrap.RuntimeHandlers.Il2Cpp;
+namespace MelonLoader.Bootstrap.RuntimeHandlers.Dotnet;
 
-internal static partial class Dotnet
+internal static partial class DotnetHandler
 {
     private const CharSet hostfxrCharSet =
 #if WINDOWS
@@ -19,7 +19,9 @@ internal static partial class Dotnet
         StringMarshalling.Utf8;
 #endif
 
+    // Prevent GC
     private static nint _module;
+    private static Action? startFunc;
     
     private const string rootKey = "DOTNET_ROOT";
 
@@ -30,14 +32,135 @@ internal static partial class Dotnet
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate int hostfxr_get_runtime_delegate_Fn(nint context, HostfxrDelegateType type, ref LoadAssemblyAndGetFunctionPointerFn? del);
     private static hostfxr_get_runtime_delegate_Fn? hostfxr_get_runtime_delegate;
+    
+    public static void Initialize()
+    {
+        var managedDir = Path.Combine(LoaderConfig.Current.Loader.BaseDirectory, "MelonLoader", "net6");
+        var runtimeConfigPath = Path.Combine(managedDir, "MelonLoader.runtimeconfig.json");
+        var nativeHostPath = Path.Combine(managedDir, "MelonLoader.NativeHost.dll");
+
+        if (!File.Exists(runtimeConfigPath))
+        {
+            Core.Logger.Error($"Runtime config not found at: '{runtimeConfigPath}'");
+            return;
+        }
+
+        if (!File.Exists(nativeHostPath))
+        {
+            Core.Logger.Error($"NativeHost not found at: '{runtimeConfigPath}'");
+            return;
+        }
+        
+        // Try to use a portable runtime from config
+        string portableDir = LoaderConfig.Current.Loader.HostFXRPathOverride;
+        if (!string.IsNullOrEmpty(portableDir)
+            && !string.IsNullOrWhiteSpace(portableDir))
+        {
+            if (File.Exists(portableDir))
+                portableDir = Path.GetDirectoryName( // dotnet
+                    Path.GetDirectoryName( // host
+                        Path.GetDirectoryName( // fxr
+                            Path.GetDirectoryName( // 6.x.x
+                                portableDir))))!;
+
+            MelonDebug.Log($"Attempting to load hostfxr using .NET runtime from: {portableDir}");
+            if (ScanDirectory(portableDir)
+                && InitializeDomain(runtimeConfigPath, nativeHostPath))
+                return;
+        }
+
+        // Try to use a portable runtime from game directory
+        portableDir = Path.Combine(Exports.ProcessDirectory, "dotnet");
+        MelonDebug.Log($"Attempting to load hostfxr using .NET runtime from: {portableDir}");
+        if (ScanDirectory(portableDir)
+            && InitializeDomain(runtimeConfigPath, nativeHostPath))
+            return;
+        
+        // Try to use a portable runtime from repository
+        portableDir = Path.Combine(Exports.ProcessDirectory, "MelonLoader", "Dependencies", "dotnet");
+        MelonDebug.Log($"Attempting to load hostfxr using .NET runtime from: {portableDir}");
+        if (ScanDirectory(portableDir)
+            && InitializeDomain(runtimeConfigPath, nativeHostPath))
+            return;
+
+        // Try the normal system detection/installation
+        MelonDebug.Log("Attempting to load hostfxr from system");
+        if (GetHostFxrSystemPath(out var path)
+            && !string.IsNullOrEmpty(path)
+            && LoadHostfxrFromFile(path))
+        {
+            Core.Logger.Msg($"Using .NET runtime: '{path}'");
+            if (!InitializeDomain(runtimeConfigPath, nativeHostPath))
+                return;
+        }
+
+#if WINDOWS
+        // Try to install runtime then attempt system detection/installation again
+        MelonDebug.Log("Attempting to reinstall .NET runtime and load hostfxr from system");
+        if (DotnetInstaller.AttemptInstall()
+            && GetHostFxrSystemPath(out path)
+            && !string.IsNullOrEmpty(path)
+            && LoadHostfxrFromFile(path))
+        {
+            Core.Logger.Msg($"Using .NET runtime: '{path}'");
+            if (!InitializeDomain(runtimeConfigPath, nativeHostPath))
+                return;
+        }
+#endif
+        
+#if X64 && (WINDOWS || OSX || LINUX)
+        // Try to download portable runtime from repository then attempt to use it again
+        MelonDebug.Log($"Attempting to download .NET runtime from repository and load hostfxr from: {portableDir}");
+        if (DotnetPortable.AttemptInstall()
+            && ScanDirectory(portableDir)
+            && InitializeDomain(runtimeConfigPath, nativeHostPath))
+            return;
+#endif
+        
+        // Failure
+        Core.Logger.Error("Failed to load Hostfxr");
+    }
+
+    private static bool InitializeDomain(string runtimeConfigPath, string nativeHostPath)
+    {
+        MelonDebug.Log("Initializing domain");
+        if (!InitializeForRuntimeConfig(runtimeConfigPath, out var context))
+        {
+            Core.Logger.Error($"Failed to initialize a .NET domain");
+            return false;
+        }
+
+        MelonDebug.Log("Loading NativeHost assembly");
+        var initialize = LoadAssemblyAndGetFunctionUco<InitializeFn>(context, nativeHostPath, "MelonLoader.NativeHost.NativeEntryPoint, MelonLoader.NativeHost", "NativeEntry");
+        if (initialize == null)
+        {
+            Core.Logger.Error($"Failed to load assembly from: '{nativeHostPath}'");
+            return false;
+        }
+
+        var startFuncPtr = Exports.LibraryHandle;
+
+        MelonDebug.Log("Invoking NativeHost entry");
+        initialize(ref startFuncPtr);
+
+        if (startFuncPtr == 0 || startFuncPtr == Exports.LibraryHandle)
+        {
+            Core.Logger.Error($"Managed did not return the initial function pointer");
+            return false;
+        }
+
+        startFunc = Marshal.GetDelegateForFunctionPointer<Action>(startFuncPtr);
+        return true;
+    }
+    
+    public static void Start()
+    {
+        startFunc?.Invoke();
+    }
 
     public static bool GetHostFxrSystemPath(out string? path)
     {
-        path = LoaderConfig.Current.Loader.HostFXRPathOverride;
-
-        if (string.IsNullOrEmpty(path)
-            || string.IsNullOrWhiteSpace(path))
-            path = GetHostfxrPathFromExport();
+        path = GetHostfxrPathFromExport();
 
         if (string.IsNullOrEmpty(path)
             || string.IsNullOrWhiteSpace(path))
@@ -50,9 +173,8 @@ internal static partial class Dotnet
     {
         if (string.IsNullOrEmpty(path))
             return false;
-        
-        MelonDebug.Log($"HostFXR Path: {path}");
 
+        MelonDebug.Log($"Attempting to use HostFXR Path: {path}");
         if (!NativeLibrary.TryLoad(path, out _module))
             return false;
 
@@ -65,23 +187,20 @@ internal static partial class Dotnet
         if (hostfxr_get_runtime_delegate_ptr == nint.Zero)
             return false;
         hostfxr_get_runtime_delegate = Marshal.GetDelegateForFunctionPointer<hostfxr_get_runtime_delegate_Fn>(hostfxr_get_runtime_delegate_ptr);
-
+        
+        Core.Logger.Msg($"Using HostFXR Path: {path}");
         return true;
     }
     
-    public static bool TryHostFxrFromPortableDir()
+    public static bool ScanDirectory(string dotnetPath)
     {
         string pathKey = "PATH";
         string? hostfxrPath = null;
-        string? portableDir = null;
         try
         {
-            portableDir = Path.Combine(Exports.ProcessDirectory, "dotnet");
-            if (!Directory.Exists(portableDir))
-                portableDir = Path.Combine(Exports.ProcessDirectory, "MelonLoader", "Dependencies", "dotnet");
-            if (!Directory.Exists(portableDir))
+            if (!Directory.Exists(dotnetPath))
                 return false;
-            if (!FindHostFxrInDirectory(portableDir, out hostfxrPath))
+            if (!FindHostFxrInDirectory(dotnetPath, out hostfxrPath))
                 return false;
         }
         catch (Exception ex)
@@ -109,18 +228,18 @@ internal static partial class Dotnet
         try
         {
             // Temporarily Apply New Root
-            Environment.SetEnvironmentVariable(rootKey, portableDir);
+            Environment.SetEnvironmentVariable(rootKey, dotnetPath);
 
             // Temporarily Apply New Path
             string path = originalPath ?? string.Empty;
             var pathEntries = path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries);
-            if (!pathEntries.Any(p => string.Equals(p, portableDir, StringComparison.OrdinalIgnoreCase)))
-                Environment.SetEnvironmentVariable(pathKey, portableDir + Path.PathSeparator + path);
+            if (!pathEntries.Any(p => string.Equals(p, dotnetPath, StringComparison.OrdinalIgnoreCase)))
+                Environment.SetEnvironmentVariable(pathKey, dotnetPath + Path.PathSeparator + path);
             
             // Attempt to load HostFXR
             if (LoadHostfxrFromFile(hostfxrPath))
             {
-                Core.Logger.Msg($"Using portable .NET runtime: '{portableDir}'");
+                Core.Logger.Msg($"Using .NET runtime: '{dotnetPath}'");
                 return true;
             }
         }
@@ -234,4 +353,7 @@ internal static partial class Dotnet
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = hostfxrCharSet)]
     private delegate void LoadAssemblyAndGetFunctionPointerFn(string assemblyPath, string typeName, string methodName, nint delegateTypeName, nint reserved, ref nint funcPtr);
+    
+    // Requires the bootstrap handle to be passed first
+    private delegate void InitializeFn(ref nint startFunc);
 }

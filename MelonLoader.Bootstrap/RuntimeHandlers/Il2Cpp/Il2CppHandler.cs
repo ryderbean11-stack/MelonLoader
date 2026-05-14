@@ -4,13 +4,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using MelonLoader.Bootstrap.RuntimeHandlers.Dotnet;
 
 namespace MelonLoader.Bootstrap.RuntimeHandlers.Il2Cpp;
 
 internal static class Il2CppHandler
 {
-    private static Action? startFunc; // Prevent GC
-
     private static Il2CppLib il2cpp = null!;
     private static bool il2cppInitDone;
     private static bool invokeStarted;
@@ -45,95 +44,10 @@ internal static class Il2CppHandler
 
         var domain = il2cpp.Init(a);
 
-        InitializeManaged();
+        DotnetHandler.Initialize();
         il2cppInitDone = true;
 
         return domain;
-    }
-
-    private static void InitializeManaged()
-    {
-        var managedDir = Path.Combine(LoaderConfig.Current.Loader.BaseDirectory, "MelonLoader", "net6");
-        var runtimeConfigPath = Path.Combine(managedDir, "MelonLoader.runtimeconfig.json");
-        var nativeHostPath = Path.Combine(managedDir, "MelonLoader.NativeHost.dll");
-
-        if (!File.Exists(runtimeConfigPath))
-        {
-            Core.Logger.Error($"Runtime config not found at: '{runtimeConfigPath}'");
-            return;
-        }
-
-        if (!File.Exists(nativeHostPath))
-        {
-            Core.Logger.Error($"NativeHost not found at: '{runtimeConfigPath}'");
-            return;
-        }
-
-        // 1) First try to use a portable .NET runtime
-        MelonDebug.Log("Attempting to load hostfxr using portable .NET runtime");
-        if (Dotnet.TryHostFxrFromPortableDir())
-        {
-            InitializeDomain(runtimeConfigPath, nativeHostPath);
-            return;
-        }
-
-        // 2) If no portable runtime is found or it fails, use the normal system detection/installation
-        MelonDebug.Log("Attempting to load hostfxr from system");
-        if (Dotnet.GetHostFxrSystemPath(out var path)
-            && !string.IsNullOrEmpty(path)
-            && Dotnet.LoadHostfxrFromFile(path))
-        {
-            InitializeDomain(runtimeConfigPath, nativeHostPath);
-            return;
-        }
-        
-        // 3) Try to install runtime then attempt system detection/installation again
-        DotnetInstaller.AttemptInstall();
-        if (Dotnet.GetHostFxrSystemPath(out path)
-            && !string.IsNullOrEmpty(path)
-            && Dotnet.LoadHostfxrFromFile(path))
-        {
-            InitializeDomain(runtimeConfigPath, nativeHostPath);
-            return;
-        }
-        
-        // Failure
-        Core.Logger.Error("Failed to load Hostfxr");
-    }
-
-    private static void InitializeDomain(string runtimeConfigPath, string nativeHostPath)
-    {
-        MelonDebug.Log("Initializing domain");
-        if (!Dotnet.InitializeForRuntimeConfig(runtimeConfigPath, out var context))
-        {
-            DotnetInstaller.AttemptInstall();
-            if (!Dotnet.InitializeForRuntimeConfig(runtimeConfigPath, out context))
-            {
-                Core.Logger.Error($"Failed to initialize a .NET domain");
-                return;
-            }
-        }
-
-        MelonDebug.Log("Loading NativeHost assembly");
-        var initialize = Dotnet.LoadAssemblyAndGetFunctionUco<InitializeFn>(context, nativeHostPath, "MelonLoader.NativeHost.NativeEntryPoint, MelonLoader.NativeHost", "NativeEntry");
-        if (initialize == null)
-        {
-            Core.Logger.Error($"Failed to load assembly from: '{nativeHostPath}'");
-            return;
-        }
-
-        var startFuncPtr = Exports.LibraryHandle;
-
-        MelonDebug.Log("Invoking NativeHost entry");
-        initialize(ref startFuncPtr);
-
-        if (startFuncPtr == 0 || startFuncPtr == Exports.LibraryHandle)
-        {
-            Core.Logger.Error($"Managed did not return the initial function pointer");
-            return;
-        }
-
-        startFunc = Marshal.GetDelegateForFunctionPointer<Action>(startFuncPtr);
     }
 
     internal static nint InvokeDetour(nint method, nint obj, nint args, nint exc)
@@ -149,16 +63,8 @@ internal static class Il2CppHandler
         invokeStarted = true;
         MelonDebug.Log("Invoke hijacked");
 
-        Start();
+        DotnetHandler.Start();
 
         return result;
     }
-
-    private static void Start()
-    {
-        startFunc?.Invoke();
-    }
-
-    // Requires the bootstrap handle to be passed first
-    private delegate void InitializeFn(ref nint startFunc);
 }

@@ -108,6 +108,9 @@ internal static partial class DotnetHandler
         }
 #endif
         
+        // Herp: This is temporarily Disabled until a Dedicated Repository for Portable .NET Runtime packages is made
+        // This can't be downloaded correctly in the future the way it currently is
+        /*
 #if X64 && (WINDOWS || OSX || LINUX)
         // Try to download portable runtime from repository then attempt to use it again
         MelonDebug.Log($"Attempting to download .NET runtime from repository and load hostfxr from: {portableDir}");
@@ -116,6 +119,7 @@ internal static partial class DotnetHandler
             && InitializeDomain(runtimeConfigPath, nativeHostPath))
             return;
 #endif
+        */
         
         // Failure
         Core.Logger.Error("Failed to load Hostfxr");

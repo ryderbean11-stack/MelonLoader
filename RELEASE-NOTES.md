@@ -34,6 +34,9 @@
 * Fixed an issue with Il2CppICallInjector not handling complete Method Signatures
 * Fixed UnityEngine.Il2CppImageConversionManager to support Unity 6000+   [[#1144](<https://github.com/LavaGang/MelonLoader/pull/1144>)]
 * Improved .NET Portable Directory loading
+* Fixed an issue with Bootstrap Core Pathing being used before Initialization   [[#1163](<https://github.com/LavaGang/MelonLoader/pull/1163>)]
+* Rewrote .NET Handling to better abide by overrides
+* Implemented Portable .NET Runtime Fallback to help minimize HostFxr load failures
 
 ## Contributors:
 * [JoShMiQueL](<https://github.com/JoShMiQueL>) made a contribution in [#1062](<https://github.com/LavaGang/MelonLoader/pull/1062>)
@@ -42,5 +45,6 @@
 * [kohanis](<https://github.com/kohanis>) made a contribution in [#1094](<https://github.com/LavaGang/MelonLoader/pull/1094>)
 * [ds5678](<https://github.com/ds5678>) made a contribution in [#1127](<https://github.com/LavaGang/MelonLoader/pull/1127>)
 * [Rukongai](<https://github.com/Rukongai>) made a contribution in [#1138](<https://github.com/LavaGang/MelonLoader/pull/1138>)
+* [Squaduck](<https://github.com/Squaduck>) made a contribution in [#1163](<https://github.com/LavaGang/MelonLoader/pull/1163>)
 
 **Full Changelog**: [CHANGELOG.md](<https://github.com/LavaGang/MelonLoader/blob/master/CHANGELOG.md>) | [v0.7.2...v0.7.3](<https://github.com/LavaGang/MelonLoader/compare/v0.7.2...v0.7.3>)

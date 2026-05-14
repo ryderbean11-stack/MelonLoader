@@ -79,6 +79,9 @@
 33. Fixed an issue with Il2CppICallInjector not handling complete Method Signatures
 34. Fixed UnityEngine.Il2CppImageConversionManager to support Unity 6000+   (Credits to [Javialonqv](https://github.com/Javialonqv))
 35. Improved .NET Portable Directory loading
+36. Fixed an issue with Bootstrap Core Pathing being used before Initialization   (Credits to [Squaduck](https://github.com/Squaduck))
+37. Rewrote .NET Handling to better abide by overrides
+38. Implemented Portable .NET Runtime Fallback to help minimize HostFxr load failures
 
 ---
 

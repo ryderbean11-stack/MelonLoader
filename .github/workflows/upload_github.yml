@@ -59,7 +59,7 @@ jobs:
         run: |
           curl -L https://github.com/LavaGang/MelonLoader.Installer/releases/latest/download/MelonLoader.Installer.exe -o compiled_release/MelonLoader.Installer.exe
           curl -L https://github.com/LavaGang/MelonLoader.Installer/releases/latest/download/MelonLoader.Installer.Linux -o compiled_release/MelonLoader.Installer.Linux
-        #  curl -L https://github.com/LavaGang/MelonLoader.Installer/releases/latest/download/MelonLoader.Installer.MacOS.x64.zip -o compiled_release/MelonLoader.Installer.MacOS.x64.zip
+          curl -L https://github.com/LavaGang/MelonLoader.Installer/releases/latest/download/MelonLoader.Installer.MacOS.dmg -o compiled_release/MelonLoader.Installer.MacOS.dmg
 
       - name: Create Release
         uses: softprops/action-gh-release@v3
@@ -74,4 +74,4 @@ jobs:
             compiled_release/MelonLoader.macOS.x64.zip
             compiled_release/MelonLoader.Installer.exe
             compiled_release/MelonLoader.Installer.Linux
-          #  compiled_release/MelonLoader.Installer.MacOS.x64.zip
+            compiled_release/MelonLoader.Installer.MacOS.dmg
